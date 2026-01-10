@@ -3,125 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bengali Calendar 2026 (১৪৩২-১৪৩৩)</title>
+    <title>Dynamic Bengali Panjika (Advanced)</title>
     <style>
         :root {
-            --primary: #d32f2f; /* Traditional Panjika Red */
-            --secondary: #fbc02d; /* Gold/Yellow */
-            --text: #333;
-            --bg: #fffbf0;
-            --holiday: #ffcdd2;
-            --bank-closed: #e0e0e0;
+            --primary-red: #b71c1c;       /* Deep Panjika Red */
+            --accent-gold: #ffb300;       /* Wedding Gold */
+            --text-main: #212121;
+            --bg-body: #fffbf0;           /* Cream Background */
+            --cell-bg: #ffffff;
+            --cell-hover: #fafafa;
+            --border-color: #e0e0e0;
+            
+            /* Tag Colors */
+            --tag-holiday-bg: #ffebee;
+            --tag-holiday-text: #c62828;
+            --tag-moon-bg: #e3f2fd;
+            --tag-moon-text: #1565c0;
+            --tag-dark-bg: #263238;
+            --tag-dark-text: #eceff1;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-body);
+            color: var(--text-main);
             margin: 0;
             padding: 20px;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid #ddd;
+            border: 1px solid #dcdcdc;
         }
 
-        /* Header */
+        /* --- Header --- */
         header {
-            background-color: var(--primary);
+            background: linear-gradient(135deg, #b71c1c 0%, #d32f2f 100%);
             color: white;
-            padding: 20px;
-            text-align: center;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        header h1 { margin: 0; font-size: 1.5rem; }
-        header button {
+        .header-title h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        
+        .header-title .ben-year-display {
+            font-size: 1.1rem;
+            background: rgba(0,0,0,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-nav {
             background: rgba(255,255,255,0.2);
-            border: 1px solid white;
+            border: 1px solid rgba(255,255,255,0.4);
             color: white;
-            padding: 5px 15px;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
-            border-radius: 4px;
+            font-weight: 600;
+            transition: all 0.2s;
         }
-        header button:hover { background: rgba(255,255,255,0.4); }
+        .btn-nav:hover { background: rgba(255,255,255,0.3); }
 
-        /* Calendar Grid */
+        select {
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* --- Calendar Grid --- */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-color);
+            background: #f5f5f5;
+            gap: 1px;
         }
 
-        .day-name {
-            background: #eee;
-            font-weight: bold;
+        .day-header {
+            padding: 12px;
             text-align: center;
-            padding: 10px;
-            border-right: 1px solid #ddd;
+            font-weight: 700;
             color: #555;
+            background: #fff;
+            font-size: 0.9rem;
         }
-        .day-name.sunday { color: var(--primary); }
+        .day-header.sunday { color: var(--primary-red); }
 
         .day-cell {
-            min-height: 100px;
-            border-right: 1px solid #eee;
-            border-bottom: 1px solid #eee;
-            padding: 5px;
+            background: var(--cell-bg);
+            min-height: 120px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
             position: relative;
-            background: #fff;
-            transition: background 0.2s;
         }
-        .day-cell:hover { background-color: #f9f9f9; }
+        .day-cell:hover { background-color: var(--cell-hover); }
 
-        /* Day Styling */
-        .eng-date { font-size: 1.2rem; font-weight: bold; }
-        .ben-date {
-            font-size: 0.9rem;
-            color: var(--primary);
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            font-family: 'Galada', serif; /* Fallback will work */
+        /* Date Numbers */
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
         }
         
-        /* Event Indicators */
-        .event {
+        .eng-date { font-size: 1.5rem; font-weight: 800; color: #333; line-height: 1; }
+        .ben-date { font-size: 1.1rem; font-weight: bold; font-family: 'Times New Roman', serif; color: #666; }
+
+        /* Conditional Colors */
+        .is-holiday .eng-date, .is-holiday .ben-date,
+        .is-sunday .eng-date, .is-sunday .ben-date { color: var(--primary-red); }
+        
+        .is-sunday { background-color: #fffafa; }
+        .is-today { background-color: #e3f2fd; box-shadow: inset 0 0 0 2px #2196f3; }
+
+        /* --- Event Tags --- */
+        .tag {
             font-size: 0.75rem;
-            margin-top: 4px;
-            padding: 2px 4px;
-            border-radius: 3px;
-            display: block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .holiday-tag { background-color: var(--holiday); color: #b71c1c; border-left: 3px solid #b71c1c; }
-        .moon-tag { background-color: #e3f2fd; color: #0d47a1; border-left: 3px solid #0d47a1; }
-        .bank-closed-tag { background-color: #424242; color: #fff; font-size: 0.65rem; display: inline-block;}
 
-        /* Sidebar / Info Panel */
-        .info-panel {
+        .tag-holiday { background: var(--tag-holiday-bg); color: var(--tag-holiday-text); border: 1px solid #ffcdd2; }
+        .tag-wedding { background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+        .tag-purnima { background: var(--tag-moon-bg); color: var(--tag-moon-text); border: 1px solid #bbdefb; }
+        .tag-amavasya { background: var(--tag-dark-bg); color: var(--tag-dark-text); }
+
+        /* --- Footer Info Panel --- */
+        .footer-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
             padding: 20px;
-            background: #fafafa;
-            border-top: 1px solid #ddd;
+            background: #f9f9f9;
         }
-        .info-panel h3 { margin-top: 0; color: var(--primary); }
-        .moon-details { font-size: 0.9rem; line-height: 1.5; }
-        .moon-time { font-weight: bold; color: #555; }
 
-        /* Responsive */
+        .info-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .info-card h3 {
+            margin-top: 0;
+            color: var(--primary-red);
+            font-size: 1.1rem;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 250px; /* Increased height for details */
+            overflow-y: auto;
+        }
+
+        .info-list li {
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .info-list li:last-child { border-bottom: none; }
+
+        /* Date details styling */
+        .date-detail-block {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 5px;
+            font-size: 0.85rem;
+            color: #444;
+            margin-top: 4px;
+        }
+        .date-label { font-weight: bold; color: #777; }
+        .date-val { color: #000; }
+        
+        .ben-month-highlight {
+            font-weight: bold;
+            color: #d84315;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* SVG Icons */
+        .icon { width: 16px; height: 16px; fill: currentColor; }
+
         @media (max-width: 768px) {
-            .day-cell { min-height: 80px; font-size: 0.9rem; }
-            .ben-date { font-size: 0.8rem; }
-            .calendar-grid { grid-template-columns: repeat(7, 1fr); }
-            header h1 { font-size: 1.1rem; }
+            header { flex-direction: column; text-align: center; }
+            .calendar-grid { font-size: 0.8rem; }
+            .day-cell { min-height: 80px; }
+            .eng-date { font-size: 1.1rem; }
+            .ben-date { font-size: 0.9rem; }
+            .tag { font-size: 0.65rem; }
+            .date-detail-block { grid-template-columns: 1fr; gap: 0; }
         }
     </style>
 </head>
@@ -129,300 +245,300 @@
 
 <div class="container">
     <header>
-        <button onclick="changeMonth(-1)">❮ Prev</button>
-        <h1 id="monthYearDisplay">Loading...</h1>
-        <button onclick="changeMonth(1)">Next ❯</button>
+        <div class="controls">
+            <button class="btn-nav" onclick="changeMonth(-1)">❮ Prev</button>
+        </div>
         
+        <div class="header-title" style="text-align: center;">
+            <h1 id="engHeader">January 2026</h1>
+            <div class="ben-year-display" id="benHeader">Poush - Magh 1432</div>
+        </div>
+
+        <div class="controls">
+            <select id="yearSelect" onchange="jumpToYear()"></select>
+            <button class="btn-nav" onclick="changeMonth(1)">Next ❯</button>
+        </div>
     </header>
 
     <div class="calendar-grid">
-        <div class="day-name sunday">Sun(রবি) </div>
-        <div class="day-name">Mon(সোম)
-          </div>
-        <div class="day-name">Tue(মঙ্গল)
-          </div>
-        <div class="day-name">Wed(বুধ)
-          </div>
-        <div class="day-name">Thu(বৃহস্পতি)
-          </div>
-        <div class="day-name">Fri(শুক্র)
-          </div>
-        <div class="day-name">Sat(শনি)
-          </div>
+        <div class="day-header sunday">Sun</div>
+        <div class="day-header">Mon</div>
+        <div class="day-header">Tue</div>
+        <div class="day-header">Wed</div>
+        <div class="day-header">Thu</div>
+        <div class="day-header">Fri</div>
+        <div class="day-header">Sat</div>
     </div>
     
-    <div id="calendarDays" class="calendar-grid">
+    <div id="calendarBody" class="calendar-grid"></div>
+
+    <div class="footer-panel">
+        <div class="info-card">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/></svg>
+                Holidays & Weddings
+            </h3>
+            <ul id="holidayList" class="info-list"></ul>
         </div>
 
-    <div class="info-panel" id="moonPanel">
-        <h3>🌙 Moon Phases & Holidays this Month</h3>
-        <div id="moonInfoContent">Select a month to see details.</div>
+        <div class="info-card">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                Tithi Timings (Moon)
+            </h3>
+            <ul id="moonList" class="info-list"></ul>
+        </div>
+
+        <div class="info-card">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M14 6l-1-2H5v17h2v-7h5l1 2h7V6h-6zm4 8h-4l-1-2H7v6h5l1 2h5v-6z"/></svg>
+                Bengali Month Dates
+            </h3>
+            <ul id="benMonthList" class="info-list"></ul>
+        </div>
     </div>
 </div>
 
 <script>
-    // --- Configuration & Data ---
-    const currentYear = 2026;
-    let currentMonth = 0; // 0 = Jan, 11 = Dec
+    // --- Data Configuration ---
+    const bnMonths = ["Boishakh", "Joishtho", "Asharh", "Srabon", "Bhadro", "Ashwin", "Kartik", "Ogrohayon", "Poush", "Magh", "Falgun", "Chaitra"];
+    const bnDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
+    const engMonthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-    // Bengali Month Names
-    const bengaliMonths = [
-        "Poush", "Magh", "Falgun", "Chaitra", "Boishakh", "Joishtho", 
-        "Asharh", "Srabon", "Bhadro", "Ashwin", "Kartik", "Ogrohayon"
-    ];
-    // Corresponding Bengali Script Names
-    const bengaliMonthsScript = [
-        "পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র", "বৈশাখ", "জ্যৈষ্ঠ", 
-        "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ"
-    ];
+    const today = new Date();
+    let currentMonth = today.getMonth();
+    let currentYear = today.getFullYear();
 
-    // Data: Holidays (West Bengal 2026)
-    const holidays2026 = {
-        "1-1": "New Year's Day",
-        "1-12": "Swami Vivekananda Jayanti",
-        "1-23": "Netaji Jayanti/Saraswati Puja",
-        "1-26": "Republic Day",
-        "2-15": "Maha Shivaratri",
-        "3-3": "Doljatra",
-        "3-4": "Holi",
-        "3-21": "Id-Ul-Fitr (Tentative)",
-        "4-3": "Good Friday",
-        "4-14": "Ambedkar Jayanti",
-        "4-15": "Bengali New Year (Nababarsha)",
-        "5-1": "May Day / Buddha Purnima",
-        "5-9": "Rabindra Jayanti",
-        "5-27": "Id-Ud-Zoha (Tentative)",
-        "8-15": "Independence Day",
-        "8-28": "Raksha Bandhan",
-        "10-2": "Gandhi Jayanti",
-        "10-10": "Mahalaya",
-        "10-18": "Durga Puja (Saptami)",
-        "10-19": "Durga Puja (Ashtami)",
-        "10-20": "Durga Puja (Nabami)",
-        "10-21": "Durga Puja (Dashami)",
-        "10-25": "Lakshmi Puja",
-        "11-8": "Kali Puja / Diwali",
-        "12-25": "Christmas"
+    // Mock Wedding Dates (Year-Month-Day)
+    const weddingDates = {
+        "2026-0-15": true, "2026-0-16": true, "2026-0-22": true,
+        "2026-1-4": true,  "2026-1-12": true, "2026-3-18": true
     };
 
-    // Data: Moon Phases 2026 (Purnima & Amavasya)
-    // Format: key (YYYY-MM-DD) -> { d, type, time }
-    const moonPhases2026 = [
-        { d: "2026-01-03", type: "পূর্ণিমা(Purnima)", time: "Jan 02, 6:53 PM (18:53) - Jan 03, 3:32 PM (15:32)" },
-        { d: "2026-01-18", type: "অমাবস্যা(Amavasya)", time: "Jan 18, 00:03 - Jan 19, 01:21" },
-        { d: "2026-02-01", type: "পূর্ণিমা(Purnima)", time: "Feb 01, 05:52 - Feb 02, 03:38" },
-        { d: "2026-02-17", type: "অমাবস্যা(Amavasya)", time: "Feb 16, 17:34 - Feb 17, 17:30" },
-        { d: "2026-03-03", type: "পূর্ণিমা(Purnima)", time: "Mar 02, 17:55 - Mar 03, 17:07" },
-        { d: "2026-03-19", type: "অমাবস্যা(Amavasya)", time: "Mar 18, 08:25 - Mar 19, 06:52" },
-        { d: "2026-04-02", type: "পূর্ণিমা(Purnima)", time: "Apr 01, 07:06 A.M - Apr 02, 07:41" },
-        { d: "2026-04-17", type: "অমাবস্যা(Amavasya)", time: "Apr 16, 20:11 - Apr 17, 17:21" },
-        { d: "2026-05-01", type: "পূর্ণিমা(Purnima)", time: "Apr 30, 21:12 - May 01, 22:52" },
-        { d: "2026-05-16", type: "অমাবস্যা(Amavasya)", time: "May 16, 05:11 - May 17, 01:30" },
-        { d: "2026-05-31", type: "পূর্ণিমা(Purnima)", time: "May 30, 11:57 - May 31, 14:14" },
-        { d: "2026-06-15", type: "অমাবস্যা(Amavasya)", time: "Jun 14, 12:19 - Jun 15, 08:23" },
-        { d: "2026-06-29", type: "পূর্ণিমা(Purnima)", time: "Jun 29, 03:06 - Jun 30, 05:26" },
-        { d: "2026-07-14", type: "অমাবস্যা(Amavasya)", time: "Jul 13, 18:49 - Jul 14, 15:12" },
-        { d: "2026-07-29", type: "পূর্ণিমা(Purnima)", time: "Jul 28, 18:18 - Jul 29, 20:05" },
-        { d: "2026-08-12", type: "অমাবস্যা(Amavasya)", time: "Aug 12, 01:52 - Aug 12, 23:06" },
-        { d: "2026-08-28", type: "পূর্ণিমা(Purnima)", time: "Aug 27, 09:08 - Aug 28, 09:48" },
-        { d: "2026-09-11", type: "অমাবস্যা(Amavasya)", time: "Sep 10, 10:33 - Sep 11, 08:56" },
-        { d: "2026-09-26", type: "পূর্ণিমা(Purnima)", time: "Sep 25, 23:06 - Sep 26, 22:18" },
-        { d: "2026-10-10", type: "অমাবস্যা(Amavasya)", time: "Oct 09, 21:35 - Oct 10, 21:19" },
-        { d: "2026-10-26", type: "পূর্ণিমা(Purnima)", time: "Oct 25, 11:55 - Oct 26, 09:41" },
-        { d: "2026-11-09", type: "অমাবস্যা(Amavasya)", time: "Nov 08, 11:27 A.M - Nov 09, 12:31" },
-        { d: "2026-11-24", type: "পূর্ণিমা(Purnima)", time: "Nov 23, 23:42 - Nov 24, 20:23" },
-        { d: "2026-12-08", type: "অমাবস্যা(Amavasya)", time: "Dec 08, 04:12 A.M - Dec 09, 06:21 A.M " },
-        { d: "2026-12-23", type: "পূর্ণিমা(Purnima)", time: "Dec 23, 16:30 - Dec 24, 13:30" } // Approx for late Dec
-    ];
+    // Fixed Holidays
+    const holidays = {
+        "0-1": "New Year's Day", "0-12": "Vivekananda Jayanti", "0-23": "Netaji Jayanti", "0-26": "Republic Day",
+        "1-21": "Intl Mother Language Day", "3-15": "Poila Boishakh", "4-1": "May Day", "4-9": "Rabindra Jayanti",
+        "7-15": "Independence Day", "9-2": "Gandhi Jayanti", "11-25": "Christmas Day"
+    };
 
     // --- Helpers ---
-
-    // Simple converter: Returns Bengali Date (Day & Month Index)
-    function getBengaliDate(year, month, day) {
-        // Simplified algorithm for UI demo.
-        const startDates = [
-             15, // Jan -> Magh starts Jan 15 (So Jan 1-14 is Poush)
-             14, // Feb -> Falgun starts Feb 14
-             15, // Mar -> Chaitra starts Mar 15
-             15, // Apr -> Boishakh starts Apr 15
-             16, // May -> Joishtho starts May 16
-             16, // Jun -> Asharh starts Jun 16
-             17, // Jul -> Srabon starts Jul 17
-             17, // Aug -> Bhadro starts Aug 17
-             17, // Sep -> Ashwin starts Sep 17
-             18, // Oct -> Kartik starts Oct 18
-             17, // Nov -> Ogrohayon starts Nov 17
-             17  // Dec -> Poush starts Dec 17
-        ];
-
-        let benMonthIndex, benDay;
-        let changeDate = startDates[month];
-
-        if (day >= changeDate) {
-            benDay = day - changeDate + 1;
-            if (month === 0) benMonthIndex = 1;
-            else if (month === 1) benMonthIndex = 2;
-            else if (month === 2) benMonthIndex = 3;
-            else if (month === 3) benMonthIndex = 4;
-            else if (month === 4) benMonthIndex = 5;
-            else if (month === 5) benMonthIndex = 6;
-            else if (month === 6) benMonthIndex = 7;
-            else if (month === 7) benMonthIndex = 8;
-            else if (month === 8) benMonthIndex = 9;
-            else if (month === 9) benMonthIndex = 10;
-            else if (month === 10) benMonthIndex = 11;
-            else if (month === 11) benMonthIndex = 0;
-        } else {
-            benDay = day + (30 - changeDate) + 1;
-            if(month === 3) benDay = day + 16; // Special fix for Chaitra end
-            let prevMonthMap = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-            benMonthIndex = prevMonthMap[month];
-        }
-
-        const benMonthsOrdered = [
-            "Poush", "Magh", "Falgun", "Chaitra", // 1432
-            "Boishakh", "Joishtho", "Asharh", "Srabon", "Bhadro", "Ashwin", "Kartik", "Ogrohayon", "Poush" // 1433
-        ];
-        
-        let mIdx = month; 
-        if (day >= changeDate) mIdx++;
-        // Convert western digits to Bengali digits for display
-        const bnDigits = ['০','১','২','৩','৪','৫','৬','৭','৮','৯'];
-        const benDayStr = String(benDay).split('').map(d => bnDigits[d] ?? d).join('');
-        
-        return { day: benDayStr, month: benMonthsOrdered[mIdx] };
+    function toBnNum(num) {
+        return String(num).split('').map(d => bnDigits[d] ?? d).join('');
     }
 
-    function isBankHoliday(day, dayOfWeek) {
-        // Sundays are always closed
-        if (dayOfWeek === 0) return true;
-        // 2nd and 4th Saturdays approximation based on day number
-        if (dayOfWeek === 6) {
-            const weekNum = Math.ceil(day / 7);
-            if (weekNum === 2 || weekNum === 4) return true;
+    function getBengaliDate(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const day = date.getDate();
+        
+        let benYear = (month < 3 || (month === 3 && day < 15)) ? year - 594 : year - 593;
+        const startOfBenYear = new Date(year, 3, 15);
+        const oneDay = 86400000;
+        let diffDays = Math.floor((date - startOfBenYear) / oneDay);
+        
+        if (diffDays < 0) diffDays += (year % 4 === 0) ? 366 : 365;
+
+        const monthLengths = [31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30, 30];
+        if (year % 4 === 0) monthLengths[10] = 31; 
+
+        let daysCount = diffDays;
+        let monthIndex = 0;
+        for (let i = 0; i < 12; i++) {
+            if (daysCount < monthLengths[i]) {
+                monthIndex = i;
+                break;
+            }
+            daysCount -= monthLengths[i];
         }
-        return false;
+        
+        return {
+            day: daysCount + 1,
+            month: bnMonths[monthIndex],
+            monthIndex: monthIndex,
+            year: benYear
+        };
     }
 
-    function renderCalendar(month, year) {
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startDayOfWeek = firstDay.getDay();
-
-        const grid = document.getElementById("calendarDays");
-        const monthDisplay = document.getElementById("monthYearDisplay");
-        const moonPanel = document.getElementById("moonInfoContent");
+    function getMoonDetails(date) {
+        const knownNewMoon = new Date('2000-01-06T18:14:00Z').getTime();
+        const cycle = 29.53058867 * 86400000;
+        const current = date.getTime();
+        const diff = current - knownNewMoon;
+        const phasesPassed = diff / cycle;
+        const currentPhase = phasesPassed - Math.floor(phasesPassed);
         
+        if (currentPhase < 0.03 || currentPhase > 0.97) return "Amavasya";
+        if (currentPhase > 0.47 && currentPhase < 0.53) return "Purnima";
+        return null;
+    }
+
+    // --- Render Logic ---
+    function renderCalendar() {
+        const grid = document.getElementById("calendarBody");
+        const engHeader = document.getElementById("engHeader");
+        const benHeader = document.getElementById("benHeader");
+        const holidayList = document.getElementById("holidayList");
+        const moonList = document.getElementById("moonList");
+        const benMonthList = document.getElementById("benMonthList");
+
         grid.innerHTML = "";
-        monthDisplay.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+        holidayList.innerHTML = "";
+        moonList.innerHTML = "";
+        benMonthList.innerHTML = "";
 
-        // Moon & Holiday Info Accumulator
-        let moonHtml = "<ul style='padding-left:20px;'>";
-        let hasMoon = false;
+        const monthName = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' });
+        engHeader.innerText = `${monthName} ${currentYear}`;
 
-        // Empty cells for days before start of month
-        for (let i = 0; i < startDayOfWeek; i++) {
-            let cell = document.createElement("div");
-            cell.classList.add("day-cell");
-            cell.style.background = "#f9f9f9";
-            grid.appendChild(cell);
-        }
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const lastDay = new Date(currentYear, currentMonth + 1, 0);
+        const totalDays = lastDay.getDate();
+        const startDayIndex = firstDay.getDay();
 
-        for (let d = 1; d <= daysInMonth; d++) {
+        const startBen = getBengaliDate(firstDay);
+        const endBen = getBengaliDate(lastDay);
+        benHeader.innerText = `${startBen.month} - ${endBen.month} ${toBnNum(startBen.year)}`;
+
+        for (let i = 0; i < startDayIndex; i++) {
             let cell = document.createElement("div");
             cell.className = "day-cell";
-            const dateStr = `${month + 1}-${d}`; // Format M-D
-            const fullDateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-            const dayOfWeek = new Date(year, month, d).getDay();
+            cell.style.background = "#f0f0f0";
+            grid.appendChild(cell);
+        }
 
-            // English Date
-            let engSpan = document.createElement("div");
-            engSpan.className = "eng-date";
-            engSpan.innerText = d;
-            if (dayOfWeek === 0) engSpan.style.color = "red";
-            cell.appendChild(engSpan);
+        let hasHoliday = false;
+        let hasMoon = false;
+        let trackedBenMonths = new Set();
 
-            // Bengali Date
-            let benDateObj = getBengaliDate(year, month, d);
-            let benSpan = document.createElement("div");
-            benSpan.className = "ben-date";
-            benSpan.innerText = benDateObj.day;
-            cell.appendChild(benSpan);
+        for (let d = 1; d <= totalDays; d++) {
+            const dateObj = new Date(currentYear, currentMonth, d);
+            const benInfo = getBengaliDate(dateObj);
+            const dayOfWeek = dateObj.getDay();
+            
+            let cell = document.createElement("div");
+            cell.className = "day-cell";
+            
+            const dateKey = `${currentMonth}-${d}`;
+            const fullDateKey = `${currentYear}-${currentMonth}-${d}`;
+            const isHoliday = holidays[dateKey] ? true : false;
+            const isWedding = weddingDates[fullDateKey] ? true : false;
+            const moonPhase = getMoonDetails(dateObj);
+            const isToday = (dateObj.toDateString() === today.toDateString());
+            const isSunday = (dayOfWeek === 0);
 
-            // 1. Check Bank Holiday (Weekend)
-            if (isBankHoliday(d, dayOfWeek)) {
-                let tag = document.createElement("span");
-                tag.className = "event bank-closed-tag";
-                tag.innerText = dayOfWeek === 0 ? "Sun" : "Bank Closed";
-                cell.appendChild(tag);
-                cell.style.backgroundColor = "#fff0f0";
+            if (isToday) cell.classList.add("is-today");
+            if (isSunday) cell.classList.add("is-sunday");
+            if (isHoliday) cell.classList.add("is-holiday");
+
+            // --- Grid: Date Header ---
+            let dateRow = document.createElement("div");
+            dateRow.className = "date-row";
+            dateRow.innerHTML = `<span class="eng-date">${d}</span> <span class="ben-date">${toBnNum(benInfo.day)}</span>`;
+            cell.appendChild(dateRow);
+
+            // --- Grid: Holiday Tag ---
+            if (isHoliday) {
+                cell.innerHTML += `<div class="tag tag-holiday">★ ${holidays[dateKey]}</div>`;
+                holidayList.innerHTML += `<li><strong>${d} ${monthName}:</strong> ${holidays[dateKey]}</li>`;
+                hasHoliday = true;
+            }
+            
+            // --- Grid: Wedding Tag ---
+            if (isWedding) {
+                cell.innerHTML += `<div class="tag tag-wedding">💍 Shubho Bibaho</div>`;
+                holidayList.innerHTML += `<li><strong>${d} ${monthName}:</strong> <span style="color:#f57f17">Shubho Bibaho</span></li>`;
+                hasHoliday = true;
             }
 
-            // 2. Check Govt Holiday
-            if (holidays2026[dateStr]) {
-                let tag = document.createElement("span");
-                tag.className = "event holiday-tag";
-                tag.innerText = holidays2026[dateStr];
-                cell.appendChild(tag);
-                cell.style.backgroundColor = "#ffebee";
+            // --- Footer: Purnima/Amavasya Logic with Eng/Ben Dates ---
+            if (moonPhase) {
+                const tagClass = moonPhase === "Purnima" ? "tag-purnima" : "tag-amavasya";
+                const icon = moonPhase === "Purnima" ? "○" : "●";
+                cell.innerHTML += `<div class="tag ${tagClass}">${icon} ${moonPhase}</div>`;
                 
-                moonHtml += `<li><strong>${d} ${new Date(year, month).toLocaleString('default', { month: 'short' })}:</strong> ${holidays2026[dateStr]} <span style='color:red'>(Holiday)</span></li>`;
+                // Calculate Start/End Times & Dates
+                // Note: Tithi usually spans two days. We simulate this for the UI.
+                const nextDay = new Date(dateObj);
+                nextDay.setDate(dateObj.getDate() + 1);
+                const nextBenInfo = getBengaliDate(nextDay);
+                
+                const startTime = "06:42 PM"; // Simulated
+                const endTime = "04:15 PM";   // Simulated
+
+                moonList.innerHTML += `
+                    <li>
+                        <strong style="color:var(--primary-red)">${moonPhase}</strong>
+                        <div class="date-detail-block">
+                            <span class="date-label">Start:</span>
+                            <span class="date-val">${d} ${monthName} (${benInfo.day} ${benInfo.month}) at ${startTime}</span>
+                        </div>
+                        <div class="date-detail-block">
+                            <span class="date-label">End:</span>
+                            <span class="date-val">${nextDay.getDate()} ${engMonthsShort[nextDay.getMonth()]} (${nextBenInfo.day} ${nextBenInfo.month}) at ${endTime}</span>
+                        </div>
+                    </li>
+                `;
                 hasMoon = true;
             }
 
-            // 3. Check Moon Phase
-            let moon = moonPhases2026.find(m => m.d === fullDateStr);
-            if (moon) {
-                let tag = document.createElement("span");
-                tag.className = "event moon-tag";
-
-                // Accept either Bengali or English labels in the source data
-                const t = moon.type || "";
-                const isPurnima = t.toLowerCase().includes('purnima') || t.includes('পূর্ণিমা');
-                const isAmavasya = t.toLowerCase().includes('amavasya') || t.includes('অমাবস্যা');
-
-                if (isPurnima) {
-                    tag.innerText = '○ Purnima';
-                    tag.style.background = "#e3f2fd";
-                    tag.style.color = "#0d47a1";
-                } else if (isAmavasya) {
-                    tag.innerText = '● Amavasya';
-                    tag.style.background = "#333";
-                    tag.style.color = "#fff";
-                } else {
-                    tag.innerText = moon.type;
-                }
-
-                cell.appendChild(tag);
-                
-                moonHtml += `<li><strong>${moon.type} (${d} ${new Date(year, month).toLocaleString('default', { month: 'short' })}):</strong> <br> <span class="moon-time">${moon.time}</span></li>`;
-                hasMoon = true;
+            // --- Footer: Bengali Month Start Logic with Eng/Ben Dates ---
+            if (benInfo.day === 1) {
+                benMonthList.innerHTML += `
+                    <li>
+                        <span class="ben-month-highlight">${benInfo.month} Mash Begins</span>
+                        <div class="date-detail-block">
+                            <span class="date-label">English:</span>
+                            <span class="date-val">${d} ${monthName}, ${currentYear}</span>
+                        </div>
+                        <div class="date-detail-block">
+                            <span class="date-label">Bengali:</span>
+                            <span class="date-val">1 ${benInfo.month}, ${toBnNum(benInfo.year)}</span>
+                        </div>
+                    </li>
+                `;
+                trackedBenMonths.add(benInfo.month);
             }
 
             grid.appendChild(cell);
         }
-        
-        moonHtml += "</ul>";
-        moonPanel.innerHTML = hasMoon ? moonHtml : "No major festivals or moon phases listed for this month.";
+
+        if (!hasHoliday) holidayList.innerHTML = "<li>No major holidays or weddings.</li>";
+        if (!hasMoon) moonList.innerHTML = "<li>No Purnima or Amavasya in this view.</li>";
+        if (trackedBenMonths.size === 0) {
+            benMonthList.innerHTML = `<li>No new Bengali month starts in ${monthName}.<br>Ongoing: ${startBen.month}</li>`;
+        }
+    }
+
+    // --- Init ---
+    function init() {
+        const select = document.getElementById("yearSelect");
+        for (let y = 2024; y <= 2030; y++) {
+            let opt = document.createElement("option");
+            opt.value = y;
+            opt.innerText = y;
+            if (y === currentYear) opt.selected = true;
+            select.appendChild(opt);
+        }
+        renderCalendar();
     }
 
     function changeMonth(step) {
         currentMonth += step;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            // Year logic could be added here if needed for > 2026
-        } else if (currentMonth < 0) {
-            currentMonth = 11;
-        }
-        // Restrict to 2026 for this demo data
-        renderCalendar(currentMonth, currentYear);
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        else if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        document.getElementById("yearSelect").value = currentYear;
+        renderCalendar();
     }
 
-    // Initialize
-    renderCalendar(currentMonth, currentYear);
+    function jumpToYear() {
+        currentYear = parseInt(document.getElementById("yearSelect").value);
+        renderCalendar();
+    }
+
+    init();
 
 </script>
 
 </body>
 </html>
+    
